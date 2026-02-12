@@ -27,8 +27,8 @@ const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
     );
   }
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
-    // Authenticated but not allowed – send to dashboard by default
+  if (allowedRoles && (!role || !allowedRoles.includes(role))) {
+    // Authenticated but role missing or not allowed – send to dashboard by default
     return <Navigate to="/dashboard" replace />;
   }
 

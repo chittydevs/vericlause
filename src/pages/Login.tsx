@@ -35,8 +35,10 @@ const Login = () => {
     setSubmitting(true);
     try {
       await signInWithGoogle();
+      // On success, redirect will follow; reset so button isn't stuck if redirect is slow
     } catch (err: any) {
       setError(err.message ?? "Failed to start Google sign-in.");
+    } finally {
       setSubmitting(false);
     }
   };
