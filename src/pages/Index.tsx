@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, FileSearch, Lock, Zap, Scale, Brain, ArrowRight } from "lucide-react";
+import { FileSearch, Lock, Zap, Scale, Brain, ArrowRight, ShieldCheck } from "lucide-react";
+import ShieldCheckLogo from "@/components/ShieldCheckLogo";
 import { motion } from "framer-motion";
 
 const features = [
@@ -30,7 +31,7 @@ const features = [
     description: "AI-generated suggestions to negotiate better commercial terms and protect your margins.",
   },
   {
-    icon: Shield,
+    icon: ShieldCheck,
     title: "Enterprise Security",
     description: "Row-level isolation, JWT auth, encrypted storage, and SOC 2-ready architecture.",
   },
@@ -61,7 +62,7 @@ const Index = () => {
             className="max-w-3xl mx-auto text-center"
           >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-sm font-medium mb-8">
-              <Shield className="h-4 w-4" />
+              <ShieldCheckLogo size={16} />
               AI-Powered Legal Intelligence
             </div>
 
@@ -154,7 +155,7 @@ const Index = () => {
       <footer className="border-t border-border py-8">
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" />
+            <ShieldCheckLogo size={20} />
             <span className="font-display text-sm font-semibold">VeriClause AI</span>
           </div>
           <p className="text-xs text-muted-foreground">
