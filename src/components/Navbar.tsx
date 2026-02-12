@@ -39,6 +39,7 @@ const Navbar = () => {
           >
             Home
           </Link>
+<<<<<<< HEAD
 
           {user && (
             <Link
@@ -63,6 +64,20 @@ const Navbar = () => {
           )}
 
           {!user && (
+=======
+          <Link
+            to="/dashboard"
+            className={`text-sm font-medium transition-colors hover:text-primary ${
+              isDashboard ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            Dashboard
+          </Link>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/signin">Sign In</Link>
+          </Button>
+          {!isDashboard && (
+>>>>>>> 3d5b58751b7169ff08fd006f5cd4072dd43c020c
             <Button asChild size="sm">
               <Link to="/login">Login</Link>
             </Button>
@@ -109,6 +124,7 @@ const Navbar = () => {
               >
                 Home
               </Link>
+<<<<<<< HEAD
 
               {user && (
                 <Link
@@ -152,6 +168,17 @@ const Navbar = () => {
                   Logout
                 </Button>
               )}
+=======
+              <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-primary">
+                Dashboard
+              </Link>
+              <Button asChild variant="ghost" size="sm" className="w-full">
+                <Link to="/signin" onClick={() => setMobileOpen(false)}>Sign In</Link>
+              </Button>
+              <Button asChild size="sm" className="w-full">
+                <Link to="/dashboard" onClick={() => setMobileOpen(false)}>Analyze Contract</Link>
+              </Button>
+>>>>>>> 3d5b58751b7169ff08fd006f5cd4072dd43c020c
             </div>
           </motion.div>
         )}
