@@ -37,6 +37,9 @@ const Navbar = () => {
           >
             Dashboard
           </Link>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/signin">Sign In</Link>
+          </Button>
           {!isDashboard && (
             <Button asChild size="sm">
               <Link to="/dashboard">Analyze Contract</Link>
@@ -67,6 +70,9 @@ const Navbar = () => {
               <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-primary">
                 Dashboard
               </Link>
+              <Button asChild variant="ghost" size="sm" className="w-full">
+                <Link to="/signin" onClick={() => setMobileOpen(false)}>Sign In</Link>
+              </Button>
               <Button asChild size="sm" className="w-full">
                 <Link to="/dashboard" onClick={() => setMobileOpen(false)}>Analyze Contract</Link>
               </Button>
