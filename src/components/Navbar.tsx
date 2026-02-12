@@ -4,11 +4,21 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ShieldCheckLogo from "@/components/ShieldCheckLogo";
+import { useAuth } from "@/lib/auth";
 
 const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isDashboard = location.pathname === "/dashboard";
+  const { user, role, signOut, loading } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.error("Failed to sign out:", err);
+    }
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass">
@@ -29,6 +39,32 @@ const Navbar = () => {
           >
             Home
           </Link>
+<<<<<<< HEAD
+
+          {user && (
+            <Link
+              to="/dashboard"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                isDashboard ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              Dashboard
+            </Link>
+          )}
+
+          {user && role === "admin" && (
+            <Link
+              to="/admin"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                location.pathname === "/admin" ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              Admin
+            </Link>
+          )}
+
+          {!user && (
+=======
           <Link
             to="/dashboard"
             className={`text-sm font-medium transition-colors hover:text-primary ${
@@ -41,9 +77,26 @@ const Navbar = () => {
             <Link to="/signin">Sign In</Link>
           </Button>
           {!isDashboard && (
+>>>>>>> 3d5b58751b7169ff08fd006f5cd4072dd43c020c
             <Button asChild size="sm">
-              <Link to="/dashboard">Analyze Contract</Link>
+              <Link to="/login">Login</Link>
             </Button>
+          )}
+
+          {user && (
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground">
+                {role ? role.toUpperCase() : "USER"}
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSignOut}
+                disabled={loading}
+              >
+                Logout
+              </Button>
+            </div>
           )}
         </div>
 
@@ -64,9 +117,58 @@ const Navbar = () => {
             className="md:hidden glass border-t border-border"
           >
             <div className="flex flex-col gap-3 p-4">
-              <Link to="/" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-primary">
+              <Link
+                to="/"
+                onClick={() => setMobileOpen(false)}
+                className="text-sm font-medium text-muted-foreground hover:text-primary"
+              >
                 Home
               </Link>
+<<<<<<< HEAD
+
+              {user && (
+                <Link
+                  to="/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  className="text-sm font-medium text-muted-foreground hover:text-primary"
+                >
+                  Dashboard
+                </Link>
+              )}
+
+              {user && role === "admin" && (
+                <Link
+                  to="/admin"
+                  onClick={() => setMobileOpen(false)}
+                  className="text-sm font-medium text-muted-foreground hover:text-primary"
+                >
+                  Admin
+                </Link>
+              )}
+
+              {!user && (
+                <Button asChild size="sm" className="w-full">
+                  <Link to="/login" onClick={() => setMobileOpen(false)}>
+                    Login
+                  </Link>
+                </Button>
+              )}
+
+              {user && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full"
+                  onClick={async () => {
+                    await handleSignOut();
+                    setMobileOpen(false);
+                  }}
+                  disabled={loading}
+                >
+                  Logout
+                </Button>
+              )}
+=======
               <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-primary">
                 Dashboard
               </Link>
@@ -76,6 +178,7 @@ const Navbar = () => {
               <Button asChild size="sm" className="w-full">
                 <Link to="/dashboard" onClick={() => setMobileOpen(false)}>Analyze Contract</Link>
               </Button>
+>>>>>>> 3d5b58751b7169ff08fd006f5cd4072dd43c020c
             </div>
           </motion.div>
         )}

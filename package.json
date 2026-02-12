@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check:supabase": "node check-supabase.mjs",
+    "check:supabase:auth": "node check-supabase-auth.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -41,11 +43,13 @@
     "@radix-ui/react-toggle": "^1.1.9",
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
+    "@supabase/supabase-js": "^2.95.3",
     "@tanstack/react-query": "^5.83.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
+    "dotenv": "^17.2.4",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.34.0",
     "input-otp": "^1.4.2",
