@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 interface AnalysisResultsProps {
   result: AnalysisResult;
   onDelete: () => void;
+  onCompare: () => void;
 }
 
 function buildSummaryText(result: AnalysisResult): string {
@@ -68,7 +69,7 @@ function buildSummaryText(result: AnalysisResult): string {
   return lines.join("\n");
 }
 
-const AnalysisResults = ({ result, onDelete }: AnalysisResultsProps) => {
+const AnalysisResults = ({ result, onDelete, onCompare }: AnalysisResultsProps) => {
   const { toast } = useToast();
   const reportRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
@@ -231,7 +232,7 @@ const AnalysisResults = ({ result, onDelete }: AnalysisResultsProps) => {
 
         {/* Sidebar */}
         <div className="space-y-4">
-          <QuickActions onNewAnalysis={onDelete} />
+          <QuickActions onNewAnalysis={onDelete} onCompare={onCompare} />
           {result.risk_categories && result.risk_categories.length > 0 && (
             <RiskDistribution categories={result.risk_categories} />
           )}

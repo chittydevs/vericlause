@@ -1,6 +1,8 @@
 import { useState } from "react";
 import FileUpload from "@/components/dashboard/FileUpload";
 import AnalysisResults from "@/components/dashboard/AnalysisResults";
+import CompareDialog from "@/components/dashboard/CompareDialog";
+import CompareResults from "@/components/dashboard/CompareResults";
 import { Progress } from "@/components/ui/progress";
 import type { AnalysisResult } from "@/lib/mock-analysis";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,14 +13,18 @@ const Dashboard = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareResult, setCompareResult] = useState<AnalysisResult | null>(null);
+  const [showCompare, setShowCompare] = useState(false);
   const { toast } = useToast();
 
   const handleAnalyze = async (text: string) => {
     setIsAnalyzing(true);
     setResult(null);
+    setCompareResult(null);
+    setShowCompare(false);
     setProgress(0);
 
-    // Simulate progress while AI works
     const interval = setInterval(() => {
       setProgress((p) => {
         if (p >= 90) { clearInterval(interval); return 90; }
@@ -33,13 +39,8 @@ const Dashboard = () => {
 
       clearInterval(interval);
 
-      if (error) {
-        throw new Error(error.message || "Analysis failed");
-      }
-
-      if (data?.error) {
-        throw new Error(data.error);
-      }
+      if (error) throw new Error(error.message || "Analysis failed");
+      if (data?.error) throw new Error(data.error);
 
       setProgress(100);
       setTimeout(() => {
@@ -60,48 +61,81 @@ const Dashboard = () => {
 
   const handleDelete = () => {
     setResult(null);
+    setCompareResult(null);
+    setShowCompare(false);
     setProgress(0);
     toast({ title: "Deleted", description: "Analysis data has been removed." });
   };
 
+  const handleCompareReady = (secondResult: AnalysisResult) => {
+    setCompareResult(secondResult);
+    setShowCompare(true);
+  };
+
   return (
     <div className="min-h-screen pt-20 pb-12">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold mb-2">Contract Analysis</h1>
-          <p className="text-muted-foreground text-sm">
-            Upload a contract to get AI-powered risk assessment and legal insights.
-          </p>
-        </div>
-
-        {!result && <FileUpload onAnalyze={handleAnalyze} isAnalyzing={isAnalyzing} />}
-
-        <AnimatePresence>
-          {isAnalyzing && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="mt-6 glass rounded-xl p-6"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium">AI is analyzing your contract...</p>
-                <span className="text-xs text-muted-foreground">{Math.round(progress)}%</span>
-              </div>
-              <Progress value={progress} className="h-2" />
-              <div className="mt-3 space-y-1">
-                <p className="text-xs text-muted-foreground">
-                  {progress < 30 && "Extracting and chunking text..."}
-                  {progress >= 30 && progress < 60 && "Querying Indian legal knowledge base..."}
-                  {progress >= 60 && progress < 90 && "AI analyzing clauses and generating report..."}
-                  {progress >= 90 && "Finalizing analysis..."}
+      <div className="container mx-auto px-4 max-w-5xl">
+        {/* Show compare view */}
+        {showCompare && result && compareResult ? (
+          <CompareResults
+            resultA={result}
+            resultB={compareResult}
+            onBack={() => setShowCompare(false)}
+          />
+        ) : (
+          <>
+            {!result && (
+              <div className="mb-8">
+                <h1 className="font-display text-3xl font-bold mb-2">Contract Analysis</h1>
+                <p className="text-muted-foreground text-sm">
+                  Upload a contract to get AI-powered risk assessment and legal insights.
                 </p>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            )}
 
-        {result && <AnalysisResults result={result} onDelete={handleDelete} />}
+            {!result && <FileUpload onAnalyze={handleAnalyze} isAnalyzing={isAnalyzing} />}
+
+            <AnimatePresence>
+              {isAnalyzing && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="mt-6 glass rounded-xl p-6"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-medium">AI is analyzing your contract...</p>
+                    <span className="text-xs text-muted-foreground">{Math.round(progress)}%</span>
+                  </div>
+                  <Progress value={progress} className="h-2" />
+                  <div className="mt-3 space-y-1">
+                    <p className="text-xs text-muted-foreground">
+                      {progress < 30 && "Extracting and chunking text..."}
+                      {progress >= 30 && progress < 60 && "Querying Indian legal knowledge base..."}
+                      {progress >= 60 && progress < 90 && "AI analyzing clauses and generating report..."}
+                      {progress >= 90 && "Finalizing analysis..."}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {result && (
+              <AnalysisResults
+                result={result}
+                onDelete={handleDelete}
+                onCompare={() => setCompareOpen(true)}
+              />
+            )}
+          </>
+        )}
+
+        {/* Compare dialog */}
+        <CompareDialog
+          open={compareOpen}
+          onOpenChange={setCompareOpen}
+          onCompareReady={handleCompareReady}
+        />
       </div>
     </div>
   );
