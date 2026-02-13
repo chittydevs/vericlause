@@ -13,6 +13,7 @@ const Dashboard = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [contractText, setContractText] = useState("");
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareResult, setCompareResult] = useState<AnalysisResult | null>(null);
   const [showCompare, setShowCompare] = useState(false);
@@ -24,6 +25,7 @@ const Dashboard = () => {
     setCompareResult(null);
     setShowCompare(false);
     setProgress(0);
+    setContractText(text);
 
     const interval = setInterval(() => {
       setProgress((p) => {
@@ -64,6 +66,7 @@ const Dashboard = () => {
     setCompareResult(null);
     setShowCompare(false);
     setProgress(0);
+    setContractText("");
     toast({ title: "Deleted", description: "Analysis data has been removed." });
   };
 
@@ -125,6 +128,7 @@ const Dashboard = () => {
                 result={result}
                 onDelete={handleDelete}
                 onCompare={() => setCompareOpen(true)}
+                contractText={contractText}
               />
             )}
           </>

@@ -7,6 +7,7 @@ import DetailedRiskAnalysis from "./DetailedRiskAnalysis";
 import SuggestedClauses from "./SuggestedClauses";
 import RedFlagsList from "./RedFlagsList";
 import ScoreCard from "./ScoreCard";
+import ContractChat from "./ContractChat";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Info, Lightbulb, Scale, Download, Trash2, ArrowLeft, Copy, Check, FileText, Loader2 } from "lucide-react";
@@ -19,6 +20,7 @@ interface AnalysisResultsProps {
   result: AnalysisResult;
   onDelete: () => void;
   onCompare: () => void;
+  contractText?: string;
 }
 
 function buildSummaryText(result: AnalysisResult): string {
@@ -69,7 +71,7 @@ function buildSummaryText(result: AnalysisResult): string {
   return lines.join("\n");
 }
 
-const AnalysisResults = ({ result, onDelete, onCompare }: AnalysisResultsProps) => {
+const AnalysisResults = ({ result, onDelete, onCompare, contractText }: AnalysisResultsProps) => {
   const { toast } = useToast();
   const reportRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
@@ -238,6 +240,9 @@ const AnalysisResults = ({ result, onDelete, onCompare }: AnalysisResultsProps) 
           )}
         </div>
       </div>
+
+      {/* Contract Chat */}
+      {contractText && <ContractChat contractText={contractText} />}
 
       {/* Delete */}
       <div className="flex justify-end mt-6">
