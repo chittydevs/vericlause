@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { contractText, messages } = await req.json();
+    const { contractText, referenceDocs, messages } = await req.json();
 
     if (!contractText || typeof contractText !== "string") {
       return new Response(
@@ -31,21 +31,32 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const truncated = contractText.slice(0, 15000);
+    const truncatedContract = contractText.slice(0, 15000);
+    const truncatedReference = typeof referenceDocs === "string" ? referenceDocs.slice(0, 30000) : "";
 
-    const systemPrompt = `You are an expert Indian legal contract advisor. You have been provided with a contract document below. Answer the user's questions STRICTLY based on the content of this contract and your knowledge of Indian law (Indian Contract Act 1872, IT Act 2000, DPDP Act 2023, etc).
+    const systemPrompt = `You are an expert Indian legal contract advisor with deep knowledge of Indian law. You have access to two key sources of information:
+
+1. THE USER'S CONTRACT — provided below
+2. INDIAN LEGAL REFERENCE DOCUMENTS — including the Indian Constitution and Bharatiya Nyaya Sanhita (BNS) 2023, provided below
 
 IMPORTANT RULES:
-- Only answer based on what is present in the contract text provided.
-- If the answer cannot be found in the contract, clearly state that.
-- Never make up clauses or terms that don't exist in the contract.
-- Reference specific sections or clauses from the contract when possible.
-- Provide practical, actionable legal insights grounded in Indian law.
-- Be concise but thorough.
+- Answer based on the contract text AND the reference legal documents provided.
+- When a question relates to the contract, cite specific clauses or sections from the contract.
+- When providing legal context, cite the specific Article (Constitution) or Section (BNS 2023) from the reference documents.
+- If a question cannot be answered from any of the provided documents, clearly state that.
+- Never make up clauses, articles, or sections that don't exist in the provided documents.
+- Provide practical, actionable legal insights grounded in the reference documents.
+- Be concise but thorough. Use structured formatting when helpful.
+- When analyzing contract clauses, cross-reference with relevant provisions from the Constitution or BNS 2023.
 
-CONTRACT TEXT:
+USER'S CONTRACT TEXT:
 ---
-${truncated}
+${truncatedContract}
+---
+
+INDIAN LEGAL REFERENCE DOCUMENTS:
+---
+${truncatedReference}
 ---`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
