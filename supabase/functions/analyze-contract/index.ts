@@ -24,10 +24,17 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // Truncate to ~15000 chars to stay within context limits
     const truncated = contractText.slice(0, 15000);
 
-    const systemPrompt = `You are an expert Indian legal contract analyst. Analyze the given contract text and return a structured assessment. You MUST call the analyze_contract function with your analysis. Be thorough but concise. Focus on Indian law (Indian Contract Act 1872, IT Act 2000, DPDP Act 2023, etc).`;
+    const systemPrompt = `You are an expert Indian legal contract analyst. Analyze the given contract text and return a comprehensive structured assessment. You MUST call the analyze_contract function with your analysis. Be thorough but concise. Focus on Indian law (Indian Contract Act 1872, IT Act 2000, DPDP Act 2023, etc).
+
+Key instructions:
+- Identify the contract purpose and all parties involved with their roles and locations.
+- Determine overall risk level as high, medium, or low.
+- Break down risks into specific categories (e.g., Payment Risk, IP Ownership Risk, Confidentiality Risk, Delivery Timeline Risk, Warranty Risk, Termination Risk, Governing Law Risk, etc.).
+- For each risk category, provide issues identified, AI recommendations, and suggest improved clause wording where applicable.
+- Suggest 3-5 new protective clauses that should be added to the contract.
+- Provide profit optimization suggestions.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -46,7 +53,7 @@ serve(async (req) => {
             type: "function",
             function: {
               name: "analyze_contract",
-              description: "Return structured contract analysis results",
+              description: "Return comprehensive structured contract analysis results",
               parameters: {
                 type: "object",
                 properties: {
@@ -57,6 +64,27 @@ serve(async (req) => {
                   confidentiality_score: {
                     type: "number",
                     description: "Confidentiality protection score 0-100. Higher = better protected.",
+                  },
+                  overall_risk_level: {
+                    type: "string",
+                    enum: ["high", "medium", "low"],
+                    description: "Overall risk classification.",
+                  },
+                  contract_purpose: {
+                    type: "string",
+                    description: "1-2 sentence description of the contract's purpose.",
+                  },
+                  parties: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string" },
+                        role: { type: "string", description: "e.g. Service Provider, Client, Vendor" },
+                        location: { type: "string", description: "City, State" },
+                      },
+                      required: ["name", "role", "location"],
+                    },
                   },
                   summary: {
                     type: "string",
@@ -87,6 +115,52 @@ serve(async (req) => {
                       required: ["title", "original_text", "explanation", "risk_level"],
                     },
                   },
+                  risk_categories: {
+                    type: "array",
+                    description: "Detailed risk breakdown by category (e.g. Payment Risk, IP Risk, etc.)",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string", description: "e.g. Payment Risk, IP Ownership Risk" },
+                        level: { type: "string", enum: ["high", "medium", "low"] },
+                        score: { type: "number", description: "Risk score 0-100 for this category" },
+                        issues: {
+                          type: "array",
+                          items: { type: "string" },
+                          description: "Specific issues identified in this category",
+                        },
+                        recommendations: {
+                          type: "array",
+                          items: { type: "string" },
+                          description: "AI recommendations to mitigate risks",
+                        },
+                        original_clause: {
+                          type: "string",
+                          description: "The problematic original clause text, if applicable",
+                        },
+                        improved_clause: {
+                          type: "string",
+                          description: "AI-suggested improved version of the clause",
+                        },
+                      },
+                      required: ["name", "level", "score", "issues", "recommendations"],
+                    },
+                  },
+                  suggested_clauses: {
+                    type: "array",
+                    description: "3-5 new protective clauses AI recommends adding to the contract",
+                    items: {
+                      type: "object",
+                      properties: {
+                        title: { type: "string" },
+                        category: { type: "string", description: "e.g. Limitation of Liability, Termination, Payment Terms" },
+                        description: { type: "string" },
+                        clause_type: { type: "string", enum: ["balanced", "protective", "aggressive"] },
+                        clause_text: { type: "string", description: "Full suggested clause text" },
+                      },
+                      required: ["title", "category", "description", "clause_type", "clause_text"],
+                    },
+                  },
                   profit_suggestions: {
                     type: "array",
                     items: { type: "string" },
@@ -99,9 +173,14 @@ serve(async (req) => {
                 required: [
                   "risk_score",
                   "confidentiality_score",
+                  "overall_risk_level",
+                  "contract_purpose",
+                  "parties",
                   "summary",
                   "red_flags",
                   "clause_explanations",
+                  "risk_categories",
+                  "suggested_clauses",
                   "profit_suggestions",
                   "legal_compliance_notes",
                 ],
@@ -141,7 +220,6 @@ serve(async (req) => {
 
     const analysis = JSON.parse(toolCall.function.arguments);
 
-    // Add disclaimer
     analysis.legal_disclaimer =
       "This analysis is generated by AI and does not constitute legal advice. It is intended for informational purposes only. Please consult a qualified legal professional before making any decisions based on this analysis. VeriClause AI and its creators are not liable for any actions taken based on this report.";
 
