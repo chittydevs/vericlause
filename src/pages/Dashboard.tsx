@@ -3,22 +3,36 @@ import FileUpload from "@/components/dashboard/FileUpload";
 import AnalysisResults from "@/components/dashboard/AnalysisResults";
 import CompareDialog from "@/components/dashboard/CompareDialog";
 import CompareResults from "@/components/dashboard/CompareResults";
+import TrashSection from "@/components/dashboard/TrashSection";
 import { Progress } from "@/components/ui/progress";
 import type { AnalysisResult } from "@/lib/mock-analysis";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useContractAnalyses, type SavedAnalysis } from "@/hooks/useContractAnalyses";
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const {
+    analyses,
+    trashedAnalyses,
+    saveAnalysis,
+    softDelete,
+    restore,
+    permanentDelete,
+  } = useContractAnalyses();
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isReanalyzing, setIsReanalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [contractText, setContractText] = useState("");
+  const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareResult, setCompareResult] = useState<AnalysisResult | null>(null);
   const [showCompare, setShowCompare] = useState(false);
-  const { toast } = useToast();
 
   const handleAnalyze = async (text: string) => {
     setIsAnalyzing(true);
@@ -41,14 +55,21 @@ const Dashboard = () => {
       });
 
       clearInterval(interval);
-
       if (error) throw new Error(error.message || "Analysis failed");
       if (data?.error) throw new Error(data.error);
 
       setProgress(100);
-      setTimeout(() => {
-        setResult(data as AnalysisResult);
+      setTimeout(async () => {
+        const analysisResult = data as AnalysisResult;
+        setResult(analysisResult);
         setIsAnalyzing(false);
+
+        // Auto-save if logged in
+        if (user) {
+          const id = await saveAnalysis(text, analysisResult);
+          setCurrentAnalysisId(id);
+        }
+
         toast({ title: "Analysis Complete", description: "Your contract has been analyzed by AI." });
       }, 500);
     } catch (err: any) {
@@ -63,12 +84,15 @@ const Dashboard = () => {
   };
 
   const handleDelete = () => {
+    if (currentAnalysisId && user) {
+      softDelete(currentAnalysisId);
+    }
     setResult(null);
     setCompareResult(null);
     setShowCompare(false);
     setProgress(0);
     setContractText("");
-    toast({ title: "Deleted", description: "Analysis data has been removed." });
+    setCurrentAnalysisId(null);
   };
 
   const handleReanalyze = async () => {
@@ -110,10 +134,17 @@ const Dashboard = () => {
     setShowCompare(true);
   };
 
+  const handleLoadFromTrash = (item: SavedAnalysis) => {
+    // Restore first, then load
+    restore(item.id);
+    setResult(item.analysis_result);
+    setContractText(item.contract_text);
+    setCurrentAnalysisId(item.id);
+  };
+
   return (
     <div className="min-h-screen pt-20 pb-12">
       <div className="container mx-auto px-4 max-w-5xl">
-        {/* Show compare view */}
         {showCompare && result && compareResult ? (
           <CompareResults
             resultA={result}
@@ -168,10 +199,19 @@ const Dashboard = () => {
                 contractText={contractText}
               />
             )}
+
+            {/* Trash section — shown when no active analysis */}
+            {!result && user && (
+              <TrashSection
+                items={trashedAnalyses}
+                onRestore={restore}
+                onPermanentDelete={permanentDelete}
+                onLoadAnalysis={handleLoadFromTrash}
+              />
+            )}
           </>
         )}
 
-        {/* Compare dialog */}
         <CompareDialog
           open={compareOpen}
           onOpenChange={setCompareOpen}

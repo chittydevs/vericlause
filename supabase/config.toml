@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.chat-contract]
 verify_jwt = false
+
+[functions.generate-updated-contract]
+verify_jwt = false
+
+[functions.cleanup-deleted-analyses]
+verify_jwt = false
