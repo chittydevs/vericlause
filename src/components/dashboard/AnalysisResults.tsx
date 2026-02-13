@@ -8,6 +8,7 @@ import SuggestedClauses from "./SuggestedClauses";
 import RedFlagsList from "./RedFlagsList";
 import ScoreCard from "./ScoreCard";
 import ContractChat from "./ContractChat";
+import GenerateUpdatedContract from "./GenerateUpdatedContract";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Info, Lightbulb, Scale, Download, Trash2, ArrowLeft, Copy, Check, FileText, Loader2 } from "lucide-react";
@@ -20,6 +21,8 @@ interface AnalysisResultsProps {
   result: AnalysisResult;
   onDelete: () => void;
   onCompare: () => void;
+  onReanalyze?: () => void;
+  isReanalyzing?: boolean;
   contractText?: string;
 }
 
@@ -71,7 +74,7 @@ function buildSummaryText(result: AnalysisResult): string {
   return lines.join("\n");
 }
 
-const AnalysisResults = ({ result, onDelete, onCompare, contractText }: AnalysisResultsProps) => {
+const AnalysisResults = ({ result, onDelete, onCompare, onReanalyze, isReanalyzing, contractText }: AnalysisResultsProps) => {
   const { toast } = useToast();
   const reportRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
@@ -234,12 +237,16 @@ const AnalysisResults = ({ result, onDelete, onCompare, contractText }: Analysis
 
         {/* Sidebar */}
         <div className="space-y-4">
-          <QuickActions onNewAnalysis={onDelete} onCompare={onCompare} />
+          <QuickActions onNewAnalysis={onDelete} onCompare={onCompare} onReanalyze={onReanalyze} isReanalyzing={isReanalyzing} />
           {result.risk_categories && result.risk_categories.length > 0 && (
             <RiskDistribution categories={result.risk_categories} />
           )}
         </div>
       </div>
+
+      {/* Contract Chat */}
+      {/* Generate Updated Contract */}
+      {contractText && <GenerateUpdatedContract result={result} contractText={contractText} />}
 
       {/* Contract Chat */}
       {contractText && <ContractChat contractText={contractText} />}

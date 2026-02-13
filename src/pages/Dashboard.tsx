@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isReanalyzing, setIsReanalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [contractText, setContractText] = useState("");
@@ -68,6 +69,40 @@ const Dashboard = () => {
     setProgress(0);
     setContractText("");
     toast({ title: "Deleted", description: "Analysis data has been removed." });
+  };
+
+  const handleReanalyze = async () => {
+    if (!contractText) return;
+    setIsReanalyzing(true);
+    setProgress(0);
+
+    const interval = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 90) { clearInterval(interval); return 90; }
+        return p + Math.random() * 10;
+      });
+    }, 400);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-contract", {
+        body: { contractText },
+      });
+
+      clearInterval(interval);
+      if (error) throw new Error(error.message || "Analysis failed");
+      if (data?.error) throw new Error(data.error);
+
+      setProgress(100);
+      setTimeout(() => {
+        setResult(data as AnalysisResult);
+        setIsReanalyzing(false);
+        toast({ title: "Re-analysis Complete", description: "Your contract has been re-analyzed." });
+      }, 500);
+    } catch (err: any) {
+      clearInterval(interval);
+      setIsReanalyzing(false);
+      toast({ title: "Error", description: err?.message || "Re-analysis failed.", variant: "destructive" });
+    }
   };
 
   const handleCompareReady = (secondResult: AnalysisResult) => {
@@ -128,6 +163,8 @@ const Dashboard = () => {
                 result={result}
                 onDelete={handleDelete}
                 onCompare={() => setCompareOpen(true)}
+                onReanalyze={handleReanalyze}
+                isReanalyzing={isReanalyzing}
                 contractText={contractText}
               />
             )}
