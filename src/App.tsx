@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import SignIn from "./pages/SignIn";
 import NotFound from "./pages/NotFound";
+import AdminPortal from "./pages/AdminPortal";
 import Navbar from "./components/Navbar";
 import ParticleSnow from "./components/ParticleSnow";
 
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/admin" element={<AdminPortal />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

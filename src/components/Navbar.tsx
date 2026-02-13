@@ -1,16 +1,29 @@
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LogOut } from "lucide-react";
+import { Menu, X, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ShieldCheckLogo from "@/components/ShieldCheckLogo";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isDashboard = location.pathname === "/dashboard";
   const { user, signOut } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); return; }
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle()
+      .then(({ data }) => setIsAdmin(!!data));
+  }, [user]);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass">
@@ -39,6 +52,16 @@ const Navbar = () => {
           >
             Dashboard
           </Link>
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className={`text-sm font-medium transition-colors hover:text-primary flex items-center gap-1 ${
+                location.pathname === "/admin" ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              <Shield className="h-3.5 w-3.5" /> Admin
+            </Link>
+          )}
           {user ? (
             <Button variant="ghost" size="sm" onClick={signOut}>
               <LogOut className="h-4 w-4 mr-1" /> Sign Out
@@ -78,6 +101,11 @@ const Navbar = () => {
               <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-primary">
                 Dashboard
               </Link>
+              {isAdmin && (
+                <Link to="/admin" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-primary flex items-center gap-1">
+                  <Shield className="h-3.5 w-3.5" /> Admin
+                </Link>
+              )}
               {user ? (
                 <Button variant="ghost" size="sm" className="w-full" onClick={() => { signOut(); setMobileOpen(false); }}>
                   <LogOut className="h-4 w-4 mr-1" /> Sign Out

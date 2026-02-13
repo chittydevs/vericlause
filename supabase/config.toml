@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.cleanup-deleted-analyses]
 verify_jwt = false
+
+[functions.admin-analyses]
+verify_jwt = false
