@@ -2,9 +2,10 @@ import { useState } from "react";
 import FileUpload from "@/components/dashboard/FileUpload";
 import AnalysisResults from "@/components/dashboard/AnalysisResults";
 import { Progress } from "@/components/ui/progress";
-import { simulateAnalysis, type AnalysisResult } from "@/lib/mock-analysis";
+import type { AnalysisResult } from "@/lib/mock-analysis";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -17,27 +18,43 @@ const Dashboard = () => {
     setResult(null);
     setProgress(0);
 
-    // Simulate progress
+    // Simulate progress while AI works
     const interval = setInterval(() => {
       setProgress((p) => {
         if (p >= 90) { clearInterval(interval); return 90; }
-        return p + Math.random() * 15;
+        return p + Math.random() * 10;
       });
-    }, 300);
+    }, 400);
 
     try {
-      const data = await simulateAnalysis();
+      const { data, error } = await supabase.functions.invoke("analyze-contract", {
+        body: { contractText: text },
+      });
+
       clearInterval(interval);
+
+      if (error) {
+        throw new Error(error.message || "Analysis failed");
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
       setProgress(100);
       setTimeout(() => {
-        setResult(data);
+        setResult(data as AnalysisResult);
         setIsAnalyzing(false);
-        toast({ title: "Analysis Complete", description: "Your contract has been analyzed successfully." });
+        toast({ title: "Analysis Complete", description: "Your contract has been analyzed by AI." });
       }, 500);
-    } catch {
+    } catch (err: any) {
       clearInterval(interval);
       setIsAnalyzing(false);
-      toast({ title: "Error", description: "Analysis failed. Please try again.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: err?.message || "Analysis failed. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -68,7 +85,7 @@ const Dashboard = () => {
               className="mt-6 glass rounded-xl p-6"
             >
               <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium">Analyzing contract...</p>
+                <p className="text-sm font-medium">AI is analyzing your contract...</p>
                 <span className="text-xs text-muted-foreground">{Math.round(progress)}%</span>
               </div>
               <Progress value={progress} className="h-2" />

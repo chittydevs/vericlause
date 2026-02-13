@@ -1,14 +1,16 @@
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ShieldCheckLogo from "@/components/ShieldCheckLogo";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isDashboard = location.pathname === "/dashboard";
+  const { user, signOut } = useAuth();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass">
@@ -37,9 +39,15 @@ const Navbar = () => {
           >
             Dashboard
           </Link>
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/signin">Sign In</Link>
-          </Button>
+          {user ? (
+            <Button variant="ghost" size="sm" onClick={signOut}>
+              <LogOut className="h-4 w-4 mr-1" /> Sign Out
+            </Button>
+          ) : (
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/signin">Sign In</Link>
+            </Button>
+          )}
           {!isDashboard && (
             <Button asChild size="sm">
               <Link to="/dashboard">Analyze Contract</Link>
@@ -70,9 +78,15 @@ const Navbar = () => {
               <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-primary">
                 Dashboard
               </Link>
-              <Button asChild variant="ghost" size="sm" className="w-full">
-                <Link to="/signin" onClick={() => setMobileOpen(false)}>Sign In</Link>
-              </Button>
+              {user ? (
+                <Button variant="ghost" size="sm" className="w-full" onClick={() => { signOut(); setMobileOpen(false); }}>
+                  <LogOut className="h-4 w-4 mr-1" /> Sign Out
+                </Button>
+              ) : (
+                <Button asChild variant="ghost" size="sm" className="w-full">
+                  <Link to="/signin" onClick={() => setMobileOpen(false)}>Sign In</Link>
+                </Button>
+              )}
               <Button asChild size="sm" className="w-full">
                 <Link to="/dashboard" onClick={() => setMobileOpen(false)}>Analyze Contract</Link>
               </Button>
