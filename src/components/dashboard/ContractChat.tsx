@@ -13,6 +13,31 @@ interface ContractChatProps {
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-contract`;
 
+// Fetch and cache reference legal documents
+let cachedReferenceDocs: string | null = null;
+
+const fetchReferenceDocs = async (): Promise<string> => {
+  if (cachedReferenceDocs) return cachedReferenceDocs;
+
+  try {
+    const [bnsRes, constitutionRes] = await Promise.all([
+      fetch("/legal-refs/bharatiya-nyaya-sanhita-2023.txt"),
+      fetch("/legal-refs/indian-constitution.txt"),
+    ]);
+
+    const [bnsText, constitutionText] = await Promise.all([
+      bnsRes.ok ? bnsRes.text() : "",
+      constitutionRes.ok ? constitutionRes.text() : "",
+    ]);
+
+    cachedReferenceDocs = [bnsText, constitutionText].filter(Boolean).join("\n\n---\n\n");
+    return cachedReferenceDocs;
+  } catch (e) {
+    console.error("Failed to fetch reference docs:", e);
+    return "";
+  }
+};
+
 const ContractChat = ({ contractText }: ContractChatProps) => {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -23,6 +48,11 @@ const ContractChat = ({ contractText }: ContractChatProps) => {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
+
+  // Pre-fetch reference docs on mount
+  useEffect(() => {
+    fetchReferenceDocs();
+  }, []);
 
   const sendMessage = async () => {
     const text = input.trim();
@@ -37,6 +67,8 @@ const ContractChat = ({ contractText }: ContractChatProps) => {
     let assistantSoFar = "";
 
     try {
+      const referenceDocs = await fetchReferenceDocs();
+
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
@@ -45,6 +77,7 @@ const ContractChat = ({ contractText }: ContractChatProps) => {
         },
         body: JSON.stringify({
           contractText,
+          referenceDocs,
           messages: allMessages.map((m) => ({ role: m.role, content: m.content })),
         }),
       });
@@ -130,7 +163,7 @@ const ContractChat = ({ contractText }: ContractChatProps) => {
         <h3 className="font-display text-lg font-semibold">Ask About This Contract</h3>
       </div>
       <p className="text-xs text-muted-foreground mb-4">
-        Ask follow-up questions — AI responses are grounded strictly in your uploaded contract and Indian legal knowledge.
+        Ask follow-up questions — AI responses are grounded in your uploaded contract and Indian legal knowledge base (Constitution, BNS 2023).
       </p>
 
       <div
