@@ -193,7 +193,7 @@ const AnalysisResults = ({ result, onDelete, onCompare, contractText }: Analysis
             <DetailedRiskAnalysis categories={result.risk_categories} />
           )}
 
-          {result.red_flags.length > 0 && <RedFlagsList flags={result.red_flags} />}
+          {(result.red_flags ?? []).length > 0 && <RedFlagsList flags={result.red_flags} />}
 
           {result.suggested_clauses && result.suggested_clauses.length > 0 && (
             <SuggestedClauses clauses={result.suggested_clauses} />
@@ -205,7 +205,7 @@ const AnalysisResults = ({ result, onDelete, onCompare, contractText }: Analysis
               <h3 className="font-display text-lg font-semibold">Profit Suggestions</h3>
             </div>
             <ul className="space-y-2">
-              {result.profit_suggestions.map((s, i) => (
+              {(result.profit_suggestions ?? []).map((s, i) => (
                 <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
                   <Badge variant="outline" className="shrink-0 mt-0.5 text-xs bg-primary/10 text-primary border-primary/20">
                     {i + 1}
@@ -222,7 +222,7 @@ const AnalysisResults = ({ result, onDelete, onCompare, contractText }: Analysis
               <h3 className="font-display text-lg font-semibold">Legal Compliance Notes</h3>
             </div>
             <ul className="space-y-2">
-              {result.legal_compliance_notes.map((note, i) => (
+              {(result.legal_compliance_notes ?? []).map((note, i) => (
                 <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
                   <span className="text-primary mt-1">•</span>
                   <span className="leading-relaxed">{note}</span>
