@@ -19,13 +19,6 @@ const QuickActions = ({ onNewAnalysis }: QuickActionsProps) => {
         <Button
           variant="outline"
           className="w-full justify-center"
-          onClick={() => toast({ title: "Coming Soon", description: "Share feature is under development." })}
-        >
-          <Share2 className="h-4 w-4 mr-2" /> Share Analysis
-        </Button>
-        <Button
-          variant="outline"
-          className="w-full justify-center"
           onClick={() => toast({ title: "Coming Soon", description: "Compare feature is under development." })}
         >
           <GitCompare className="h-4 w-4 mr-2" /> Compare Contracts
