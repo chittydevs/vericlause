@@ -4,6 +4,7 @@ import AnalysisResults from "@/components/dashboard/AnalysisResults";
 import CompareDialog from "@/components/dashboard/CompareDialog";
 import CompareResults from "@/components/dashboard/CompareResults";
 import TrashSection from "@/components/dashboard/TrashSection";
+import PastAnalyses from "@/components/dashboard/PastAnalyses";
 import { Progress } from "@/components/ui/progress";
 import type { AnalysisResult } from "@/lib/mock-analysis";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +19,7 @@ const Dashboard = () => {
   const {
     analyses,
     trashedAnalyses,
+    loading: analysesLoading,
     saveAnalysis,
     softDelete,
     restore,
@@ -135,11 +137,18 @@ const Dashboard = () => {
   };
 
   const handleLoadFromTrash = (item: SavedAnalysis) => {
-    // Restore first, then load
     restore(item.id);
     setResult(item.analysis_result);
     setContractText(item.contract_text);
     setCurrentAnalysisId(item.id);
+  };
+
+  const handleLoadPast = (item: SavedAnalysis) => {
+    setResult(item.analysis_result);
+    setContractText(item.contract_text);
+    setCurrentAnalysisId(item.id);
+    setCompareResult(null);
+    setShowCompare(false);
   };
 
   return (
@@ -197,6 +206,16 @@ const Dashboard = () => {
                 onReanalyze={handleReanalyze}
                 isReanalyzing={isReanalyzing}
                 contractText={contractText}
+              />
+            )}
+
+            {/* Past analyses — shown when no active analysis */}
+            {!result && user && (
+              <PastAnalyses
+                analyses={analyses}
+                loading={analysesLoading}
+                onLoad={handleLoadPast}
+                onDelete={softDelete}
               />
             )}
 
